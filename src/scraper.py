@@ -1,31 +1,52 @@
 import requests
 from bs4 import BeautifulSoup
 
-# Catégorie à scraper
-category = "artificial-intelligence"  # Remplacez par la catégorie souhaitée
+# Catégories à scraper
+categories = [
+    "startups",
+    "apps",
+    "artificial-intelligence"
+]
 
-URL = f"https://techcrunch.com/category/{category}/"
 
-# Requête HTTP 
-response = requests.get(URL)
+def scrape_category(category):
+    url = f"https://techcrunch.com/category/{category}/"
 
-# Vérification de la requête
-response.raise_for_status()
+    response = requests.get(url)
+    response.raise_for_status()
 
-# Analyse du HTML
-soup = BeautifulSoup(response.text, "html.parser")
+    soup = BeautifulSoup(response.text, "html.parser")
 
-# Récupération de la liste des articles
-articles = soup.select("li.wp-block-post")
+    articles = soup.select("li.wp-block-post")
 
-# Récupération du titre et de l'URL de chaque article
-for article in articles:
-    title_link = article.select_one("a.loop-card__title-link")
+    results = []
 
-    if title_link:
-        title = title_link.get_text(strip=True)
-        url = title_link.get("href")
+    for article in articles:
+        title_link = article.select_one("a.loop-card__title-link")
 
-        print("Titre :", title)
-        print("URL :", url)
-        print("---")
+        if title_link:
+            results.append({
+                "title": title_link.get_text(strip=True),
+                "url": title_link.get("href"),
+                "category": category
+            })
+
+    return results
+
+
+# Liste finale de tous les articles
+all_articles = []
+
+for category in categories:
+    articles = scrape_category(category)
+
+    print(f"{category} : {len(articles)} articles")
+
+    all_articles.extend(articles)
+
+
+print(f"\nNombre total d'articles : {len(all_articles)}")
+
+# Affichage des 5 premiers articles
+for article in all_articles[:5]:
+    print(article)
