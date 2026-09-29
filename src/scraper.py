@@ -8,8 +8,8 @@ categories = [
     "artificial-intelligence"
 ]
 
-
-def scrape_category(category):
+# Fonction pour scraper les articles d'une catégorie | ajout d'une limite de 10 articles par catégorie   
+def scrape_category(category, limit = 10):
     url = f"https://techcrunch.com/category/{category}/"
 
     response = requests.get(url)
@@ -18,9 +18,11 @@ def scrape_category(category):
     soup = BeautifulSoup(response.text, "html.parser")
 
     articles = soup.select("li.wp-block-post")
+# Limiter le nombre d'articles à 10
+    articles = articles[:limit]
 
     results = []
-
+# Pour chaque article, on récupère le titre et l'URL de l'article, puis on les stocke dans un dictionnaire avec la catégorie correspondante.
     for article in articles:
         title_link = article.select_one("a.loop-card__title-link")
 
@@ -34,19 +36,24 @@ def scrape_category(category):
     return results
 
 
-# Liste finale de tous les articles
-all_articles = []
 
-for category in categories:
-    articles = scrape_category(category)
+if __name__ == "__main__":
+    categories = [
+        "startups",
+        "apps",
+        "artificial-intelligence"
+    ]
 
-    print(f"{category} : {len(articles)} articles")
+    all_articles = []
+# Scraper les articles pour chaque catégorie et les stocker dans all_articles
+    for category in categories:
+        articles = scrape_category(category)
 
-    all_articles.extend(articles)
+        print(f"{category} : {len(articles)} articles")
 
+        all_articles.extend(articles)
 
-print(f"\nNombre total d'articles : {len(all_articles)}")
-
-# Affichage des 5 premiers articles
-for article in all_articles[:5]:
-    print(article)
+    print(f"\nNombre total d'articles : {len(all_articles)}")
+# Afficher les 5 premiers articles pour vérification
+    for article in all_articles[:5]:
+        print(article)

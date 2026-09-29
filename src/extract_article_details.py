@@ -66,8 +66,27 @@ def get_article_details(url):
 
 
 if __name__ == "__main__":
-    test_url = "https://techcrunch.com/2026/09/25/mark-wahlberg-is-coming-to-techcrunch-disrupt-2026/"
+    from scraper import scrape_category
 
-    article = get_article_details(test_url)
+    categories = [
+        "startups",
+        "apps",
+        "artificial-intelligence"
+    ]
 
-    print(article)
+    all_articles = []
+
+    for category in categories:
+        articles = scrape_category(category)
+
+        for article in articles:
+            details = get_article_details(article["url"])
+
+            article.update(details)
+
+            all_articles.append(article)
+
+    print(f"Nombre total d'articles : {len(all_articles)}")
+
+    for article in all_articles[:5]:
+        print(article)
