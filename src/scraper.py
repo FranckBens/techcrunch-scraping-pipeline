@@ -1,17 +1,24 @@
-# import requests bibliothèque pour permettre à Python de faire une requête HTTP -
 import requests
 from bs4 import BeautifulSoup
 
-URL = "https://techcrunch.com/category/startups/"
-# utilisation de la bibliothèque de requests pour faire une requête sur l'url avec python
+# Catégorie à scraper
+category = "artificial-intelligence"  # Remplacez par la catégorie souhaitée
+
+URL = f"https://techcrunch.com/category/{category}/"
+
+# Requête HTTP 
 response = requests.get(URL)
-#déchiffrage de la page html 
+
+# Vérification de la requête
+response.raise_for_status()
+
+# Analyse du HTML
 soup = BeautifulSoup(response.text, "html.parser")
 
-# récuperation de la liste d'article dans la balise <li> avec BS4
+# Récupération de la liste des articles
 articles = soup.select("li.wp-block-post")
 
-# Récupération du titre et de l'url de chaque article
+# Récupération du titre et de l'URL de chaque article
 for article in articles:
     title_link = article.select_one("a.loop-card__title-link")
 
