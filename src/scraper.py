@@ -27,11 +27,24 @@ def scrape_category(category, limit = 10):
         title_link = article.select_one("a.loop-card__title-link")
 
         if title_link:
-            results.append({
-                "title": title_link.get_text(strip=True),
-                "url": title_link.get("href"),
-                "category": category
-            })
+            title = title_link.get_text(strip=True)
+        url = title_link.get("href")
+
+        article_classes = article.get("class", [])
+
+        article_id = None
+
+        for class_name in article_classes:
+            if class_name.startswith("post-"):
+                article_id = int(class_name.replace("post-", ""))
+                break
+
+        results.append({
+            "id": article_id,
+            "title": title,
+            "url": url,
+            "category": category
+        })
 
     return results
 
