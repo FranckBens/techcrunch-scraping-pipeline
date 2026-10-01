@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS articles (
     url TEXT NOT NULL UNIQUE,
     description TEXT,
     author TEXT,
-    published_at TIMESTAMP,
+    published_at TIMESTAMPTZ,
     image_url TEXT
 );
 

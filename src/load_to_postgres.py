@@ -66,6 +66,36 @@ def insert_article_category(cur, article_id, category_id):
         article_id,
         category_id
     ))
+# Fonctions pour insérer les tags et les relations article-tag dans la base de données PostgreSQL
+def insert_tag(cur, tag):
+    cur.execute("""
+        INSERT INTO tags (name)
+        VALUES (%s)
+        ON CONFLICT (name) DO NOTHING;
+    """, (tag,))
+
+# Fonction pour récupérer l'id d'un tag à partir de son nom
+def get_tag_id(cur, tag):
+    cur.execute("""
+        SELECT id
+        FROM tags
+        WHERE name = %s;
+    """, (tag,))
+
+    result = cur.fetchone()
+
+    if result:
+        return result[0]
+
+    return None
+
+# Fonction pour insérer la relation article-tag dans la base de données PostgreSQL
+def insert_article_tag(cur, article_id, tag_id):
+    cur.execute("""
+        INSERT INTO article_tags (article_id, tag_id)
+        VALUES (%s, %s)
+        ON CONFLICT DO NOTHING;
+    """, (article_id, tag_id))    
 
 # Fonction principale pour exécuter le script
 def main():
@@ -88,24 +118,35 @@ def main():
 
     for article in articles:
 
-        # Insertion de l'article dans la table articles
+    # Insertion de l'article
         insert_article(cur, article)
 
-        
+    # Insertion de la catégorie et de la relation article-catégorie
         insert_category(cur, article["category"])
 
-
         category_id = get_category_id(
+        cur,
+        article["category"]
+     )
+
+    if category_id:
+        insert_article_category(
             cur,
-            article["category"]
+            article["id"],
+            category_id
         )
 
-        # Insertion de la relation article-catégorie dans la table article_categories
-        if category_id:
-            insert_article_category(
+    # Insertion des tags et de la relation article-tag
+    for tag in article["tags"]:
+        insert_tag(cur, tag)
+
+        tag_id = get_tag_id(cur, tag)
+
+        if tag_id:
+            insert_article_tag(
                 cur,
                 article["id"],
-                category_id
+                tag_id
             )
 
     conn.commit()

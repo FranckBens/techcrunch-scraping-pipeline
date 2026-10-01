@@ -1,65 +1,69 @@
 import requests
 from bs4 import BeautifulSoup
 
-# Catégories à scraper
-categories = [
+
+# Catégories TechCrunch à scraper
+CATEGORIES = [
     "startups",
     "apps",
     "artificial-intelligence"
 ]
 
-# Fonction pour scraper les articles d'une catégorie | ajout d'une limite de 10 articles par catégorie   
-def scrape_category(category, limit = 10):
+
+def scrape_category(category, limit=10):
+    """Scrape les articles d'une catégorie TechCrunch."""
+
     url = f"https://techcrunch.com/category/{category}/"
 
-    response = requests.get(url)
+    response = requests.get(
+        url,
+        headers={"User-Agent": "Mozilla/5.0"},
+        timeout=10
+    )
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")
 
-    articles = soup.select("li.wp-block-post")
-# Limiter le nombre d'articles à 10
-    articles = articles[:limit]
+    articles = soup.select("li.wp-block-post")[:limit]
 
     results = []
-# Pour chaque article, on récupère le titre et l'URL de l'article, puis on les stocke dans un dictionnaire avec la catégorie correspondante.
+
     for article in articles:
         title_link = article.select_one("a.loop-card__title-link")
 
-        if title_link:
-            title = title_link.get_text(strip=True)
+        if not title_link:
+            continue
+
+        title = title_link.get_text(strip=True)
         url = title_link.get("href")
 
         article_classes = article.get("class", [])
 
         article_id = None
+        tags = []
 
         for class_name in article_classes:
             if class_name.startswith("post-"):
                 article_id = int(class_name.replace("post-", ""))
-                break
+
+            if class_name.startswith("tag-"):
+                tags.append(class_name.replace("tag-", ""))
 
         results.append({
             "id": article_id,
             "title": title,
             "url": url,
-            "category": category
+            "category": category,
+            "tags": tags
         })
 
     return results
 
 
-
 if __name__ == "__main__":
-    categories = [
-        "startups",
-        "apps",
-        "artificial-intelligence"
-    ]
-
     all_articles = []
-# Scraper les articles pour chaque catégorie et les stocker dans all_articles
-    for category in categories:
+
+    for category in CATEGORIES:
         articles = scrape_category(category)
 
         print(f"{category} : {len(articles)} articles")
@@ -67,6 +71,6 @@ if __name__ == "__main__":
         all_articles.extend(articles)
 
     print(f"\nNombre total d'articles : {len(all_articles)}")
-# Afficher les 5 premiers articles pour vérification
+
     for article in all_articles[:5]:
         print(article)

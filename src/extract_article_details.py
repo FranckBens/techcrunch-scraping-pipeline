@@ -1,27 +1,27 @@
 import requests
 from bs4 import BeautifulSoup
-from scraper import scrape_category
 
-# Fonction pour extraire les détails d'un article à partir de son URL
+from scraper import CATEGORIES, scrape_category
+
+
 def get_article_details(url):
+    """Récupère les métadonnées détaillées d'un article."""
+
     response = requests.get(
         url,
-        headers={
-            "User-Agent": "Mozilla/5.0"
-        },
+        headers={"User-Agent": "Mozilla/5.0"},
         timeout=10
     )
-
     response.raise_for_status()
-# Utilisation de BeautifulSoup pour parser le contenu HTML de la page
+
     soup = BeautifulSoup(response.text, "html.parser")
-# Initialisation des variables pour stocker les détails de l'article
+
     description = None
     author = None
     published_at = None
     image_url = None
 
-# Récupération de la description de l'article
+    # Description
     description_tag = soup.find(
         "meta",
         attrs={"name": "description"}
@@ -30,7 +30,7 @@ def get_article_details(url):
     if description_tag:
         description = description_tag.get("content")
 
-# Récupération de l'auteur de l'article
+    # Auteur
     author_tag = soup.find(
         "meta",
         attrs={"name": "author"}
@@ -39,7 +39,7 @@ def get_article_details(url):
     if author_tag:
         author = author_tag.get("content")
 
-# Récupération de la date de publication de l'article
+    # Date de publication
     published_tag = soup.find(
         "meta",
         attrs={"property": "article:published_time"}
@@ -48,7 +48,7 @@ def get_article_details(url):
     if published_tag:
         published_at = published_tag.get("content")
 
-# Récupération de l'URL de l'image de l'article
+    # Image
     image_tag = soup.find(
         "meta",
         attrs={"property": "og:image"}
@@ -56,37 +56,35 @@ def get_article_details(url):
 
     if image_tag:
         image_url = image_tag.get("content")
-# Retourne un dictionnaire contenant les détails de l'article
+
     return {
+        "url": url,
         "description": description,
         "author": author,
         "published_at": published_at,
         "image_url": image_url
     }
 
-# Fonction pour extraire les détails de tous les articles
-if __name__ == "__main__":
-    from scraper import scrape_category
+
 def extract_all_articles():
-    categories = [
-        "startups",
-        "apps",
-        "artificial-intelligence"
-    ]
-# Scraper les articles pour chaque catégorie et les stocker dans all_articles
+    """Scrape les catégories puis enrichit chaque article."""
+
     all_articles = []
 
-    for category in categories:
+    for category in CATEGORIES:
         articles = scrape_category(category)
 
         for article in articles:
             details = get_article_details(article["url"])
+
+            # Fusion des données du scraper avec les métadonnées
             article.update(details)
+
             all_articles.append(article)
 
     return all_articles
 
-# Test de la fonction extract_all_articles
+
 if __name__ == "__main__":
     all_articles = extract_all_articles()
 
